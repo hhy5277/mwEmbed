@@ -95,7 +95,7 @@
         chromelessAdManagerLoadedId: null,
 
         init: function ( embedPlayer, callback, pluginName ) {
-            if ( embedPlayer.casting || mw.getConfig( "EmbedPlayer.UseExternalAdPlayer" ) === true ) {
+            if ( embedPlayer.isCasting || mw.getConfig( "EmbedPlayer.UseExternalAdPlayer" ) === true ) {
                 callback();
                 return;
             }
@@ -416,36 +416,36 @@
                 }
             }, timeoutVal );
 
-            var imaURL = '//s0.2mdn.net/instream/html5/ima3.js';
-            if ( this.getConfig( 'debugMode' ) === true ) {
-                imaURL = '//s0.2mdn.net/instream/html5/ima3_debug.js';
-            }
-            $.getScript( imaURL, function () {
-                isLoaded = true;
-                successCB();
-            } )
-                .fail( function ( jqxhr, settings, errorCode ) {
-                    isLoaded = true;
-                    failureCB( errorCode );
-                } );
-        },
-        startAdsManager: function () {
-            if ( this.embedPlayer.casting ) {
-                this.embedPlayer.adTimeline.restorePlayer( null, true );
-                this.destroy();
-                this.addSkipSupport();
-                return;
-            }
-            // Initialize the ads manager. In case of ad playlist with a preroll, the preroll will start playing immediately.
-            this.adsManager.init( this.embedPlayer.getWidth(), this.embedPlayer.getHeight(), google.ima.ViewMode.NORMAL );
-            this.adsManager.setVolume( this.embedPlayer.getPlayerElementVolume() );
-            // Start the ad playback. For video and overlay ads, this will start the ads. For automatic ad rules controller ads, this will be ignored.
-            mw.log( "DoubleClick::adsManager.play" );
-            this.adsManager.start();
-        },
-        addManagedBinding: function () {
-            var _this = this;
-            mw.log( "DoubleClick::addManagedBinding" );
+			var imaURL =  '//s0.2mdn.net/instream/html5/ima3.js';
+			if ( this.getConfig( 'debugMode' ) === true ){
+				imaURL =  '//s0.2mdn.net/instream/html5/ima3_debug.js';
+			}
+			$.getScript( imaURL , function() {
+				isLoaded = true;
+				successCB();
+			} )
+				.fail( function( jqxhr, settings, errorCode ) {
+					isLoaded = true;
+					failureCB( errorCode );
+				} );
+		},
+		startAdsManager: function(){
+			if (this.embedPlayer.isCasting){
+				this.embedPlayer.adTimeline.restorePlayer( null, true);
+				this.destroy();
+				this.addSkipSupport();
+				return;
+			}
+			// Initialize the ads manager. In case of ad playlist with a preroll, the preroll will start playing immediately.
+			this.adsManager.init( this.embedPlayer.getWidth(), this.embedPlayer.getHeight(), google.ima.ViewMode.NORMAL);
+			this.adsManager.setVolume( this.embedPlayer.getPlayerElementVolume() );
+			// Start the ad playback. For video and overlay ads, this will start the ads. For automatic ad rules controller ads, this will be ignored.
+			mw.log( "DoubleClick::adsManager.play" );
+			this.adsManager.start();
+		},
+		addManagedBinding: function(){
+			var _this = this;
+			mw.log( "DoubleClick::addManagedBinding" );
 
             _this.embedPlayer.bindHelper( 'AdSupport_preroll' + _this.bindPostfix, function ( event, sequenceProxy ) {
                 // Add the slot to the given sequence proxy target target

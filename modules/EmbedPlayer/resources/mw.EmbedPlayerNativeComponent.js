@@ -328,7 +328,7 @@
 					}
 					_this.updatePosterHTML();
 				}
-				if ( _this.autoplay && mw.isMobileDevice() && !_this.casting) {
+				if ( _this.autoplay && mw.isMobileDevice() && !_this.isCasting) {
 					mw.log("Autoplay = true in Mobile");
 					_this.play();
 					_this.updatePosterHTML();
@@ -414,7 +414,7 @@
 			});
 
 			var doPlay = function(){
-				if (_this.parent_play() || _this.casting) {
+				if (_this.parent_play() || _this.isCasting) {
 					if (_this.getPlayerElement()) { // update player
 						_this.getPlayerElement().play();
 					}

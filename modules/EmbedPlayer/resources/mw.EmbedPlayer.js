@@ -156,7 +156,7 @@
 		"buffering": false,
 
 		// indicates the the player is currently casting to Chromecast
-		"casting": false
+		"isCasting": false
 	});
 
 	/**
@@ -733,7 +733,7 @@
 		getPlayerByStreamerType: function (source) {
 			var targetPlayer;
 			// if currently casting - always return the Chromecast player
-			if ( this.casting && !mw.getConfig('EmbedPlayer.ForceNativeComponent') === true){
+			if ( this.isCasting && !mw.getConfig('EmbedPlayer.ForceNativeComponent') === true){
 				return mw.EmbedTypes.getMediaPlayers().getPlayerById('chromecast');
 			}
 			//currently only kplayer can handle other streamerTypes
