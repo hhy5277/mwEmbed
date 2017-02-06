@@ -81,7 +81,7 @@
 			'volumechange'
 		],
 
-		streamerType: 'mpegdash',
+		streamerType: 'dash',
 
 		manifestLoaded: false,
 		dashContextUpdated: false,

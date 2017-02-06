@@ -32,9 +32,7 @@
 				this.getPlayer().getPlayerPoster().removeClass( "blur" );
 			}, this));
 		},
-		getScreen: function(){
-			return $.Deferred().resolve(this.screen);
-		},
+
 		drawModal: function() {
 			if (this.isDisabled) return;
 			var _this = this;
@@ -83,7 +81,6 @@
 
 			var closeCallback = function() {
 				// Enable space key binding
-				_this.hideScreen();
 				_this.getPlayer().triggerHelper( 'onEnableKeyboardBinding' );
 				$(_this.getPlayer().getPlayerElement()).removeClass( "blur" );
 				_this.getPlayer().getPlayerPoster().removeClass( "blur" );
@@ -91,8 +88,6 @@
 					_this.getPlayer().play();
 				}
 			};
-			this.screen = $moderationScreen;
-			this.showScreen();
 
 			this.showModal($moderationScreen, closeCallback);
 		},

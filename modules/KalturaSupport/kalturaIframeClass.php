@@ -29,8 +29,6 @@ class kalturaIframeClass {
 		$this->client = $container['client_helper'];
 		$this->utility = $container['utility_helper'];
 		$this->logger = $container['logger'];
-		$this->cache = $container['cache_helper'];
-
 
 		// No entry Id and Reference Id were found
 		if( count( $this->getEntryResult() ) == 0 ) {
@@ -513,14 +511,13 @@ class kalturaIframeClass {
 		// check for language key: 
 		$_GET['lang'] = $this->getLangKey();
 		// include skin and language in cache path, as a custom param needed for startup
-		$cachePath =  '/startup.' .
+		$cachePath = $wgScriptCacheDirectory . '/startup.' .
 			$wgMwEmbedVersion . $_GET['skin'] . $_GET['lang'] . $wgHTTPProtocol . '.' . $_SERVER['SERVER_NAME'] . '.min.js';
 			
 		// check for cached startup:
 		if( !$wgEnableScriptDebug){
-			$content = $this->cache->get( $cachePath );
-			if( $content != null  ){
-				return $content;
+			if( is_file( $cachePath ) ){
+				return file_get_contents( $cachePath );
 			}
 		}
 
@@ -536,7 +533,7 @@ class kalturaIframeClass {
 		if( !$wgEnableScriptDebug ){
 			$s = JavaScriptMinifier::minify( $s, $wgResourceLoaderMinifierStatementsOnOwnLine );
 			// try to store the cached file: 
-			$this->cache->set($cachePath, $s);
+			@file_put_contents($cachePath, $s);
 		}
 		return $s;
 	}
@@ -879,10 +876,9 @@ HTML;
 	function getModulesRegistry(){
 		global $wgScriptCacheDirectory, $wgMwEmbedVersion;
 		$registrations;
-		$cachePath =  '/registrations.' . $wgMwEmbedVersion . $_GET['skin'] . $_GET['lang'] . '.min.json';
-		$content = $this->cache->get($cachePath);
-		if($content != null  ){
-			$registrations = json_decode($content, true);
+		$cachePath = $wgScriptCacheDirectory . '/registrations.' . $wgMwEmbedVersion . $_GET['skin'] . $_GET['lang'] . '.min.json';
+		if( is_file( $cachePath ) ){
+			$registrations = json_decode(file_get_contents( $cachePath ), true);
 		}
 
 		return $registrations;
@@ -1134,11 +1130,10 @@ HTML;
 		// last modified time: 
 		$lmtime =  @filemtime( $resourcePath );
 		// set the cache key
-		$cachePath =  '/OnPage_' . md5( $resourcePath ) . $lmtime . 'min.js';
-		// check for cached version:
-		$content = $this->cache->get($cachePath);
-		if( $content != null){
-			return $content;
+		$cachePath = $wgScriptCacheDirectory . '/OnPage_' . md5( $resourcePath ) . $lmtime . 'min.js';
+		// check for cached version: 
+		if( is_file( $cachePath) ){
+			return file_get_contents( $cachePath );
 		}
 		// Get the JSmin class:
 		require_once( $wgBaseMwEmbedPath . '/includes/libs/JavaScriptMinifier.php' );
@@ -1147,7 +1142,7 @@ HTML;
 		$jsMinContent = JavaScriptMinifier::minify( $jsContent, $wgResourceLoaderMinifierStatementsOnOwnLine );
 	
 		// try to store the cached file: 
-		$this->cache->set($cachePath, $jsMinContent);
+		@file_put_contents($cachePath, $jsMinContent);
 		return $jsMinContent;
 	}
 	/**
@@ -1328,11 +1323,7 @@ HTML;
 
 <script type="text/javascript">
     var customCSS = <?php echo $customCss ?>;
-    if ( window['kWidget'] && window["kalturaIframePackageData"] && window["kalturaIframePackageData"].playerConfig && window["kalturaIframePackageData"].playerConfig.layout  && window["kalturaIframePackageData"].playerConfig.vars ) {
-           var skin = window["kalturaIframePackageData"].playerConfig.layout ? window["kalturaIframePackageData"].playerConfig.layout.skin : "kdark";
-           var mobileSkin = window['kWidget'].isChromeCast() || ( window["kalturaIframePackageData"].playerConfig.vars["EmbedPlayer.EnableMobileSkin"] === true && skin === "kdark" && window['kWidget'].isMobileDevice() && !window['kWidget'].isWindowsPhone() );
-    }
-    if (  customCSS && mobileSkin === false ) {
+    if (['kWidget'] && !window['kWidget'].isMobileDevice() && customCSS){
         var head = document.head || document.getElementsByTagName('head')[0];
         var customStyle = document.createElement('style');
         customStyle.type = 'text/css';

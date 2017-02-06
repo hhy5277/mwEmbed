@@ -883,7 +883,6 @@
 						$.each(this.mediaElement.sources, function (currentIndex, currentSource) {
 							if (currentSource.getFlavorId() == "ism") {
 								errorObj = _this.getKalturaMsgObject('mwe-embedplayer-install-silverlight');
-								errorObj.code = "7000";
 								return;
 							}
 						});
@@ -1958,7 +1957,7 @@
 
 			// Do some device detection devices that don't support overlays
 			// and go into full screen once play is clicked:
-			if ((mw.isAndroidNativeBrowser() || (mw.isIphone() && !this.inline)) && !mw.isWindowsPhone()) {
+			if ((mw.isAndroidNativeBrowser() || mw.isIphone()) && !mw.isWindowsPhone()) {
 				return true;
 			}
 
@@ -3323,30 +3322,19 @@
 		handlePlayerError: function (data, shouldHandlePlayerError) {
 			if (this.shouldHandlePlayerError || shouldHandlePlayerError) {
 				var message = this.getErrorMessage(data);
-				var errorObj = { title: this.getKalturaMsg('ks-GENERIC_ERROR_TITLE'), message: message};
-				if(data.code){
-					errorObj.code = data.code;
-				}
-				this.showErrorMsg(errorObj);
+				this.showErrorMsg({ title: this.getKalturaMsg('ks-GENERIC_ERROR_TITLE'), message: message });
+
 			}
 		},
 
 		getErrorMessage: function(data){
 			var message = data ? data : this.getKalturaMsg('ks-CLIP_NOT_FOUND');
 			/* there are two formats used to represent error messages*/
-			if(message.errorMessage){
-				message = message.errorMessage;
-			} else if (message.message){
-				message = message.message;
-			}
+			message = message.errorMessage !== undefined ? message.errorMessage : message;
 			if (!message || message == undefined){
 				message = this.getKalturaMsg('ks-CLIP_NOT_FOUND');
 			}
 			return message;
-		},
-
-		getErrorCode: function(data){
-			return data ? data.code : "7000";
 		},
 
 		/**

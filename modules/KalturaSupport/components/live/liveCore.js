@@ -319,7 +319,7 @@
 
 				if ( _this.isNativeHLS() ) {
 					_this.bind( 'timeupdate' , function() {
-						var curTime = embedPlayer.getPlayerElement().currentTime;
+						var curTime = embedPlayer.getPlayerElementTime();
 
 						if ( _this.isDVR() ) {
 						  if ( curTime > _this.maxCurrentTime ) {

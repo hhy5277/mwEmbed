@@ -73,7 +73,6 @@
 				}
 				_this.addBindings();
 			});
-			this.addBindings();
 			this.setupViewCode();
 		},
 		setupViewCode: function(){
@@ -128,12 +127,11 @@
 			});
 
 			// handle errors
-			this.bind('mediaLoadError'  + this.bindPostfix + ' playerError' + this.bindPostfix, function (e, errorObj) {
-				var errorMsg = errorObj ? errorObj.message : _this.embedPlayer.getErrorMessage();
-				var errorCode = errorObj && errorObj.code ? errorObj.code : _this.embedPlayer.getErrorCode();
+			this.bind('embedPlayerError' + this.bindPostfix + ' mediaLoadError'  + this.bindPostfix + ' playerError' + this.bindPostfix, function () {
+				var errorMsg = _this.embedPlayer.getError() ? _this.embedPlayer.getError().message : _this.embedPlayer.getErrorMessage();
 				_this.sendBeacon( 'error', {
 					'player': 'kaltura-player-v' + MWEMBED_VERSION,
-					'errorCode': errorCode,
+					'errorCode': '-1', // currently we don't support error codes
 					'msg': errorMsg,
 					'resource': _this.getCurrentVideoSrc(),
 					// 'transcode' // not presently used.
@@ -144,8 +142,6 @@
 					'totalBytes': "0", // could potentially be populated if we use XHR for iframe payload + static loader + DASH MSE for segments )
 					'pingTime': _this.pingTime
 				});
-				clearInterval( _this.activePingInterval );
-				_this.activePingInterval = null;
 			});
 
 			this.bind( 'bitrateChange' + this.bindPostfix ,function( event, newBitrate){

@@ -335,13 +335,13 @@ mw.KWidgetSupport.prototype = {
 
 		var legacyMulticastSource = this.getLegacyLiveMulticastSource(playerData);
 		if (legacyMulticastSource){
-			this.addLiveEntrySource( embedPlayer, playerData.meta, "silverlightMulticast", 'multicast_silverlight');
+			this.addLiveEntrySource( embedPlayer, playerData.meta, false, true, 'multicast_silverlight');
 			isStreamSupported = true;
 			embedPlayer.setLive( true );
 		}
 
 		if (embedPlayer.getFlashvars("LeadWithUnicastToMulticast")===true) {
-			this.addLiveEntrySource( embedPlayer, playerData.meta, "silverlightMulticast", 'applehttp_to_mc');
+			this.addLiveEntrySource( embedPlayer, playerData.meta, false, true, 'applehttp_to_mc');
 			isStreamSupported = true;
 			embedPlayer.setLive( true );
 			if (embedPlayer.getFlashvars("disableMulticastFallback")) {
@@ -352,55 +352,22 @@ mw.KWidgetSupport.prototype = {
 
 		}
 
-		var drmPlugin = embedPlayer.playerConfig.plugins["multiDrm"];
-		var drmRequired =  drmPlugin && (drmPlugin.plugin === true);
-		var liveSource;
-		var _this = this;
-		var attachLiveDrmData = function(playerData, liveSource){
-			if (drmRequired) {
-				var drmData = _this.getFlavorAssetsDrmData(playerData);
-				var ids = $.map(drmData, function (data, id) {
-					return id;
-				});
-				_this.attachFlavorAssetDrmData(liveSource, ids[0], drmData);
-				liveSource.fpsCertificate = _this.getFairplayCert(playerData);
-			}
-		};
-
-		//Order of live playback
-		// 1. Dash (if DRM required only)
-		// 2. HLS
-		// 3. SmoothStream (if DRM required only)
-		// 4. Auto detect via flash
-		if (drmRequired && this.hasLivestreamConfig(playerData, "mpegdash") &&
-			mw.EmbedTypes.getMediaPlayers().getMIMETypePlayers( 'application/dash+xml' ).length){
-			liveSource = this.addLiveEntrySource( embedPlayer, playerData.meta, "dash", 'mpegdash' );
-			attachLiveDrmData(playerData, liveSource);
-			// Set live property to true
-			embedPlayer.setLive( true );
-		} else if( this.hasHlsSourcse(playerData) &&
+		if( this.hasHlsSourcse(playerData) &&
 			mw.EmbedTypes.getMediaPlayers().getMIMETypePlayers( 'application/vnd.apple.mpegurl' ).length ) {
 			// Add live stream source
 			//if we're gettting the source from manual provider(mediaProxy) - add them directly
 			if (this.isManualProvider(playerData)){
-				liveSource = this.addManualProviderSources(embedPlayer, playerData);
+				this.addManualProviderSources(embedPlayer, playerData);
 				embedPlayer.setLive( true );
 			} else {
-				liveSource = this.addLiveEntrySource( embedPlayer, playerData.meta, "hls", 'applehttp' );
+				this.addLiveEntrySource( embedPlayer, playerData.meta, false, false, 'applehttp' );
 				// Set live property to true
 				embedPlayer.setLive( true );
 			}
-			attachLiveDrmData(playerData, liveSource);
-		} else if (drmRequired && this.hasLivestreamConfig(playerData, "sl") &&
-			mw.EmbedTypes.getMediaPlayers().getMIMETypePlayers( 'video/playreadySmooth' ).length){
-			liveSource = this.addLiveEntrySource( embedPlayer, playerData.meta, "silverlight", 'sl' );
-			attachLiveDrmData(playerData, liveSource);
-			// Set live property to true
-			embedPlayer.setLive( true );
 		} else if ( mw.EmbedTypes.getMediaPlayers().isSupportedPlayer( 'kplayer' ) ) {
 			var streamerType = this.resolveFlashStreamerType(embedPlayer, playerData);
 			// Add live stream source
-			this.addLiveEntrySource( embedPlayer, playerData.meta, "flash", streamerType );
+			this.addLiveEntrySource( embedPlayer, playerData.meta, true, false, streamerType );
 
 			// Set live property to true
 			embedPlayer.setLive( true );
@@ -462,13 +429,13 @@ mw.KWidgetSupport.prototype = {
 	},
 	addManualProviderSources: function(embedPlayer, playerData){
 		if (playerData.meta.hdsStreamUrl){
-			return embedPlayer.mediaElement.tryAddSource($('<source />')
+			embedPlayer.mediaElement.tryAddSource($('<source />')
 				.attr({
 					'src' : playerData.meta.hdsStreamUrl,
 					'type' : 'application/vnd.apple.mpegurl'
 				})[0] );
 		}
-		return embedPlayer.mediaElement.tryAddSource(
+		embedPlayer.mediaElement.tryAddSource(
 			$('<source />')
 				.attr({
 					'src' : playerData.meta.hlsStreamUrl,
@@ -1975,50 +1942,33 @@ mw.KWidgetSupport.prototype = {
 	 * @param streamerType
 	 * @param callback
 	 */
-	addLiveEntrySource: function( embedPlayer, entry, streamType, streamerType ) {
+	addLiveEntrySource: function( embedPlayer, entry, isFlash, isSilverlight, streamerType ) {
 		var _this = this;
 		var extension;
 		var mimeType;
 		var format = streamerType;
 		var protocol;
-		switch(streamType){
-			case "flash":
-				extension = 'f4m';
-				embedPlayer.setFlashvars( 'streamerType', streamerType );
-				protocol = 'rtmp';
-				if ( embedPlayer.kalturaContextData ) {
-					protocol = embedPlayer.kalturaContextData.mediaProtocol;
-				}
-				mimeType = 'video/live';
-				break;
-			case "silverlightMulticast":
-				extension = 'f4m';
-				protocol = 'http';
-				mimeType = 'video/multicast';
-				break;
-			case "silverlight":
-				extension = 'manifest';
-				protocol = 'http';
-				mimeType = 'video/playreadySmooth';
-				break;
-			case "hls":
-				embedPlayer.setFlashvars( 'streamerType', 'http' );
-				extension = 'm3u8';
-				protocol = mw.getConfig('Kaltura.Protocol');
-				if( !protocol ){
-					protocol = window.location.protocol.replace(':','');
-				}
-				mimeType = 'application/vnd.apple.mpegurl';
-				break;
-			case "dash":
-				embedPlayer.setFlashvars( 'streamerType', 'http' );
-				extension = 'mpd';
-				protocol = mw.getConfig('Kaltura.Protocol');
-				if( !protocol ){
-					protocol = window.location.protocol.replace(':','');
-				}
-				mimeType = 'application/dash+xml';
-				break;
+		if ( isFlash ) {
+			extension = 'f4m';
+			embedPlayer.setFlashvars( 'streamerType', streamerType );
+			protocol = 'rtmp';
+			if ( embedPlayer.kalturaContextData ) {
+				protocol = embedPlayer.kalturaContextData.mediaProtocol;
+			}
+			mimeType = 'video/live';
+		} else if ( isSilverlight ) {
+			extension = 'f4m';
+			protocol = 'http';
+			mimeType = 'video/multicast';
+
+		} else {
+			embedPlayer.setFlashvars( 'streamerType', 'http' );
+			extension = 'm3u8';
+			protocol = mw.getConfig('Kaltura.Protocol');
+			if( !protocol ){
+				protocol = window.location.protocol.replace(':','');
+			}
+			mimeType = 'application/vnd.apple.mpegurl';
 		}
 
 		var srcUrl = this.getBaseFlavorUrl(entry.partnerId) + '/entryId/' + entry.id + '/format/' + format + '/protocol/' + protocol + '/uiConfId/' + embedPlayer.kuiconfid +  '/a.' + extension;
@@ -2032,14 +1982,13 @@ mw.KWidgetSupport.prototype = {
 
 		//add source
 		mw.log( 'KWidgetSupport::addLiveEntrySource: Add Live Entry Source - ' + srcUrl );
-		var liveSource = embedPlayer.mediaElement.tryAddSource(
+		embedPlayer.mediaElement.tryAddSource(
 			$('<source />')
 				.attr({
 					'src' : srcUrl,
 					'type' : mimeType
 				})[0]
 		);
-		return liveSource;
 	},
 	isValidAspect: function( aspect ){
 		return  ! isNaN( aspect) && isFinite( aspect );

@@ -623,8 +623,12 @@
 				_this.resumeAd(isLinear)
 			});
 			$(".adCover").remove();
-			if (!mw.isIphone()){
+			if (this.isChromeless){
 				$(".videoDisplay").prepend(adCover);
+			}else{
+				if (!mw.isIphone()){
+					$(this.getAdContainer()).append(adCover);
+				}
 			}
 			$(this.embedPlayer).trigger("onPlayerStateChange", ["pause", this.embedPlayer.currentState]);
 
@@ -757,17 +761,14 @@
 						.addClass( 'ad-component ad-skip-btn' )
 						.css({"position": "absolute", "float": "right", "display": "none"})
 						.on("click touchstart", function(e){
-                            e.stopPropagation();
+							e.stopPropagation();
 							e.preventDefault();
 							$( _this.embedPlayer).trigger( 'onAdSkip' );
-                            if ( _this.adPaused ) {
-                                _this.resumeAd( _this.isLinear );
-                            }
 							if ( _this.isChromeless ){
 								_this.embedPlayer.getPlayerElement().sendNotification( 'skipAd' );
 							}else{
 								_this.adsManager.stop();
-                                if (_this.currentAdSlotType === "postroll" && _this.getConfig( 'adTagUrl' ) ){
+								if (_this.currentAdSlotType === "postroll" && _this.getConfig( 'adTagUrl' ) ){
 									_this.restorePlayer(true);
 								}
 							}
@@ -930,7 +931,7 @@
 			}
 
 			if ( this.isNativeSDK ) {
-				this.embedPlayer.getPlayerElement().attr( 'doubleClickRequestAds', adTagUrl);
+				this.embedPlayer.getPlayerElement().attr( 'doubleClickRequestAds', this.getConfig( 'adTagUrl' ));
 				mw.log( "DoubleClick::requestAds: Native SDK player request ad ");
 				return;
 			}
@@ -1014,18 +1015,9 @@
 
 						try {
 							var selectionCriteria = new google.ima.CompanionAdSelectionSettings();
-							selectionCriteria.resourceType = google.ima.CompanionAdSelectionSettings.ResourceType.ALL;
-							selectionCriteria.creativeType = google.ima.CompanionAdSelectionSettings.CreativeType.ALL;
-							switch( this.getConfig( 'companionSizeCriteria' ) ){
-								case 'SELECT_NEAR_MATCH' :
-									selectionCriteria.sizeCriteria = google.ima.CompanionAdSelectionSettings.SizeCriteria.SELECT_NEAR_MATCH;
-									break;
-								case 'IGNORE' :
-									selectionCriteria.sizeCriteria = google.ima.CompanionAdSelectionSettings.SizeCriteria.IGNORE;
-									break;
-								default:
-									selectionCriteria.sizeCriteria = google.ima.CompanionAdSelectionSettings.SizeCriteria.SELECT_EXACT_MATCH;
-							}
+							selectionCriteria.resourceType = google.ima.CompanionAdSelectionSettings.ResourceType.STATIC;
+							selectionCriteria.creativeType = google.ima.CompanionAdSelectionSettings.CreativeType.IMAGE;
+							selectionCriteria.sizeCriteria = google.ima.CompanionAdSelectionSettings.SizeCriteria.IGNORE;
 							companionAds = ad.getCompanionAds(adSlotWidth, adSlotHeight, selectionCriteria);
 						} catch(e) {
 							mw.log("Error: DoubleClick could not access getCompanionAds");
@@ -1637,22 +1629,20 @@
 		},
 		// Handler for various ad errors.
 		onAdError: function( errorEvent ) {
-			if (errorEvent) {
-				var errorMsg = ( typeof errorEvent.getError != 'undefined' ) ? errorEvent.getError() : errorEvent;
-				mw.log('DoubleClick:: onAdError: ' + errorMsg );
-				if (!this.adLoaderErrorFlag){
-					$( this.embedPlayer ).trigger("adErrorEvent");
-					this.adLoaderErrorFlag = true;
-				}
-				if (this.adsManager && $.isFunction( this.adsManager.unload ) ) {
-					this.adsManager.unload();
-				}
-				if (this.embedPlayer.isInSequence() || (this.embedPlayer.autoplay && this.embedPlayer.canAutoPlay())){
-					this.restorePlayer(this.contentDoneFlag);
-					this.embedPlayer.play();
-				}else{
-					this.destroy();
-				}
+			var errorMsg = ( typeof errorEvent.getError != 'undefined' ) ? errorEvent.getError() : errorEvent;
+			mw.log('DoubleClick:: onAdError: ' + errorMsg );
+			if (!this.adLoaderErrorFlag){
+				$( this.embedPlayer ).trigger("adErrorEvent");
+				this.adLoaderErrorFlag = true;
+			}
+			if (this.adsManager && $.isFunction( this.adsManager.unload ) ) {
+				this.adsManager.unload();
+			}
+			if (this.embedPlayer.isInSequence() || (this.embedPlayer.autoplay && this.embedPlayer.canAutoPlay())){
+				this.restorePlayer(this.contentDoneFlag);
+				this.embedPlayer.play();
+			}else{
+				this.destroy();
 			}
 		},
 		restorePlayer: function( onContentComplete, adPlayed ){

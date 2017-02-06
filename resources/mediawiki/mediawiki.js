@@ -943,8 +943,7 @@ var mw = ( function ( $, undefined ) {
 				request = sortQuery( request );
 				// Asynchronously append a script tag to the end of the body
 				// Append &* to avoid triggering the IE6 extension check
-				sourceLoadScript += '?' + $.param( request ) + '&*' + '&protocol=' + location.protocol.slice(0, -1);
-				addScript(sourceLoadScript , null, async );
+				addScript( sourceLoadScript + '?' + $.param( request ) + '&*', null, async );
 			}
 
 			/* Public Methods */

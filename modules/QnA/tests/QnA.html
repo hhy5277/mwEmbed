@@ -11,7 +11,6 @@
 </head>
 <body>
 	<h1>Q and A Demo</h1>
-	<input type="button" onclick="foo()" content="Create">
 	<div id="kaltura_player" style="width: 585px; height: 330px;float: left;"></div>
 	<div id="qnaListHolder" style="width: 300px; height: 330px; float:left; float: left"></div>
 	<br style="clear: both;" /><br />
@@ -19,49 +18,24 @@
 <script>
 
 
-	function foo() {
+//    mw.setConfig( 'Kaltura.ServiceUrl' , 'http://lbd.kaltura.com' );
+	kWidget.featureConfig({
+		'targetId': 'kaltura_player',
+		'wid': '_1802381',
+		'uiconf_id' : '25906281',
+		'flashvars': {
+            'ks': "djJ8MTgwMjM4MXzeU1D24AZ4Hk72EdmTmRU8ag59hIzYM-j2xABSpP-CotnZMT3HvKVeSh_yJ0UbEGIBYU2J4qQMW9p4O0HQlScjwQ6ED8vCxKChuZARHctrJ_vK-fcSdCluuZ58mKcYXKXTSvI5_PEKD7Tca4xBaWHnwiTK1yaTPgLlfubor0h3xA==",
+            'qna': qna,
+            "chapters": {
+                plugin: true
+            }, "dualScreen": {
+                plugin: true
+            },
+            "EmbedPlayer.LiveCuepoints" : true
+		},
+		'entry_id': "1_bzr97hax" // vod : 1_bzr97hax | live : 1_afjmm4ie
 
-		mw.setConfig('Kaltura.ServiceUrl', 'http://dev-backend18.dev.kaltura.com');
-		kWidget.featureConfig({
-			'targetId': 'kaltura_player',
-			'wid': '_101',
-			'uiconf_id': '23448188',
-			'flashvars': {
-				'ks': "NWFmYWQzMGE1MDQ2YWQ3ZjE0MTc3ODc1OGZhY2Y1MTI4MzkxZmQxMnwxMDE7MTAxOzE0OTAxODMwMTI7MjsxNDgxNTQzMDEyLjI4NTM7eW9zc2kucGFwaWFzaHZpbGlAa2FsdHVyYS5jb207ZGlzYWJsZWVudGl0bGVtZW50Ozs",
-				'qna': qna,
-				"chapters": {
-					plugin: true
-				}, "dualScreen": {
-					plugin: true
-				},
-				"EmbedPlayer.LiveCuepoints": true
-			},
-			'entry_id': "0_tq87sh9k" // vod : 1_bzr97hax | live : 1_afjmm4ie
-
-		});
-/*
-		 //    mw.setConfig( 'Kaltura.ServiceUrl' , 'http://lbd.kaltura.com' );
-		 kWidget.featureConfig({
-			 'targetId': 'kaltura_player',
-			 'wid': '_1802381',
-			 'uiconf_id' : '25906281',
-			 'flashvars': {
-				 'ks': "djJ8MTgwMjM4MXyuVzyJLOkqZvwZCwLAQ4eMW5oyhx6nNKDXy1pOJpCfvCakO6vVh_tSjTlQoxwaW9ilN8Gis6k63Skw4Y-T-QmcLlpqwphELMZ8D_X68L59hcUL2KilaLiBxkG5UawGI48=",
-				 "qna": qna,
-				 "chapters": {
-					plugin: true
-				 },
-				"dualScreen": {
-					plugin: true
-				},
-				"EmbedPlayer.LiveCuepoints" : true
-			 },
-		 	 'entry_id': "1_afjmm4ie" // vod : 1_bzr97hax | live : 1_afjmm4ie
-		 });
-	}*/
-
-	foo();
-
+	});
 
 </script>
 </body>
