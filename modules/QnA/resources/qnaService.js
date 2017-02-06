@@ -1,5 +1,5 @@
 /*
-DAL for Q&A Module
+ DAL for Q&A Module
 
 
  */
@@ -506,8 +506,8 @@ DAL for Q&A Module
 
             // as long as the queue is not empty and it's head contains a cue point with a valid end time (defined and not 0) - remove it.
             while( _this.AnswerOnAirQueue().length > 0 &&
-                    parseInt(_this.AnswerOnAirQueue()[0]().cuePoint().createdAt + (_this.AnswerOnAirQueue()[0]().cuePoint().endTime - _this.AnswerOnAirQueue()[0]().cuePoint().startTime)/1000) < currentPlayerTime &&
-                    parseInt(_this.AnswerOnAirQueue()[0]().cuePoint().endTime) !== 0){
+            parseInt(_this.AnswerOnAirQueue()[0]().cuePoint().createdAt + (_this.AnswerOnAirQueue()[0]().cuePoint().endTime - _this.AnswerOnAirQueue()[0]().cuePoint().startTime)/1000) < currentPlayerTime &&
+            parseInt(_this.AnswerOnAirQueue()[0]().cuePoint().endTime) !== 0){
                 _this.AnswerOnAirQueue.shift();
             }
 
@@ -689,7 +689,7 @@ DAL for Q&A Module
                 }
             );
         },
-        
+
         registerUserNotificationItems: function() {
             var _this = this;
 
