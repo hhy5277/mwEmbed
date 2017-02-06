@@ -15,32 +15,36 @@
 <div id="qnaListHolder" style="width: 300px; height: 330px; float:left; float: left"></div>
 <script>
 
+    function foo() {
 
-    //    mw.setConfig( 'Kaltura.ServiceUrl' , 'http://lbd.kaltura.com' );
-    kWidget.featureConfig({
-        'targetId': 'kaltura_player',
-        'wid': '1_w20qjaju',
-        'uiconf_id' : '25906281',
-        'flashvars': {
-            'qna': qna,
-            'autoPlay' : true,
-            "Share": {
-                plugin: true
+        //    mw.setConfig( 'Kaltura.ServiceUrl' , 'http://lbd.kaltura.com' );
+        kWidget.featureConfig({
+            'targetId': 'kaltura_player',
+            'wid': '1_w20qjaju',
+            'uiconf_id': '25906281',
+            'flashvars': {
+                'qna': qna,
+                'autoPlay': true,
+                "Share": {
+                    plugin: true
+                },
+                "chapters": {
+                    plugin: true
+                }, "dualScreen": {
+                    plugin: true
+                },
+                "EmbedPlayer.LiveCuepoints": true,
+                'webcastPolls': {
+                    plugin: true
+                }
             },
-            "chapters": {
-                plugin: true
-            }, "dualScreen": {
-                plugin: true
-            },
-            "EmbedPlayer.LiveCuepoints" : true,
-            'webcastPolls': {
-                plugin: true
-            }
-        },
-        'entry_id': "1_6z0qos51"
+            'entry_id': "1_6z0qos51"
 
-    });
+        });
+    }
+    foo();
 
 </script>
+<input type="button" onclick="foo()" content="Create">
 </body>
 </html>

@@ -158,7 +158,7 @@
                 this.bind('resizeEvent', function () {
 					// in WebVTT we have to remove the caption on resizing
 					// for recalculation the caption layout
-                    if ( _this.selectedSource.mimeType === "text/vtt" ) {
+                    if ( _this.selectedSource && _this.selectedSource.mimeType === "text/vtt" ) {
 						mw.log( 'mw.ClosedCaptions:: resizeEvent: remove captions' );
                         _this.getPlayer().getInterface().find('.track').remove();
                     }
@@ -235,6 +235,10 @@
 			});
 			this.bind( 'newCaptionsStyles', function (e, stylesObj){
 				_this.customStyle = stylesObj;
+			});
+			this.bind( 'onChangeMedia', function (e, stylesObj){
+				//Reset UI state on change media
+				_this.getBtn().show();
 			});
 		},
 		addTextSource: function(captionData){
@@ -496,10 +500,12 @@
 			var captionsSrc;
 			if( mw.isIphone() && !mw.getConfig('disableTrackElement') && !this.getConfig('forceLoadLanguage') || this.getConfig("forceWebVTT") ) {
 				// getting generated vtt file from dfxp/srt
+				var ks = _this.getFlashvars('ks');
 				captionsSrc = mw.getConfig('Kaltura.ServiceUrl') +
 							"/api_v3/index.php/service/caption_captionasset/action/serveWebVTT/captionAssetId/" +
 							dbTextSource.id +
 							"/segmentIndex/-1/version/2/captions.vtt";
+				captionsSrc += ks ? '/ks/' + ks : '';
 			} else {
 				captionsSrc = this.getCaptionURL( dbTextSource.id ) + '/.' + dbTextSource.fileExt;
 			}
@@ -656,7 +662,6 @@
 				.html($(caption.content)
 					.addClass('caption')
 					.css('pointer-events', 'auto')
-					.css("background-color", (this.customStyle && this.customStyle.windowColor) ? this.customStyle.windowColor : "none")
 				);
 
 			this.displayTextTarget($textTarget);
@@ -678,18 +683,13 @@
 			var $textTarget = $('<div />')
 				.addClass('track')
 				.attr('data-capId', capId)
+				.attr('dir', "auto")
 				.hide();
-
-			var $windowTarget = $('<div />')
-				.css("background-color", (this.customStyle && this.customStyle.windowColor) ? this.customStyle.windowColor : "none")
-				.addClass('trackWindow');
 
 			// Update text ( use "html" instead of "text" so that subtitle format can
 			// include html formating
 			// TOOD we should scrub this for non-formating html
-
 			$textTarget.append(
-				$windowTarget.append(
 				$('<span />')
 					.addClass('ttmlStyled')
 					.css('pointer-events', 'auto')
@@ -701,7 +701,6 @@
 							.css('position', 'relative')
 							.html(caption.content)
 					)
-				)
 			);
 
 			// Add/update the lang option
@@ -1096,7 +1095,7 @@
 					'class': "cvaaOptions"
 				},
 				'callback': function(){
-					_this.getPlayer().triggerHelper(btnOptions.optionsEvent);
+					_this.getPlayer().triggerHelper(btnOptions.optionsEvent, _this.lastActiveCaption);
 				},
 				'active': false
 			});

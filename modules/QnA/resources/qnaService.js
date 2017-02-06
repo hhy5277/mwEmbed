@@ -9,9 +9,14 @@ DAL for Q&A Module
 
     var viewedEntries=(function() {
         var _viewedEntries = [];
+        var maxEntriesLength = 250;
         if(window.localStorage) {
             if (localStorage["_viewedEntries"]) {
-                _viewedEntries = JSON.parse(localStorage["_viewedEntries"]);
+                try {
+                    _viewedEntries = JSON.parse(localStorage["_viewedEntries"]);
+                }catch(e) {
+                    mw.log("Exception in initilaizing Q&A _viewedEntries: "+e);
+                }
             }
         }else{
             mw.log("window.localStorage is not available");
@@ -19,12 +24,20 @@ DAL for Q&A Module
 
         return {
             markAsRead: function(EntryId) {
-                // Write to localStorage this item was read
-                if (_viewedEntries.indexOf(EntryId) < 0 ) {
-                    _viewedEntries.push(EntryId);
-                    if (window.localStorage) {
-                        localStorage["_viewedEntries"] = JSON.stringify(_viewedEntries);
+                try {
+                    // Write to localStorage this item was read
+                    if (_viewedEntries.indexOf(EntryId) < 0) {
+                        _viewedEntries.push(EntryId);
+                        if (_viewedEntries.length>maxEntriesLength) {
+                            _viewedEntries.splice(0,_viewedEntries.length-maxEntriesLength);
+                        }
+                        if (window.localStorage) {
+                            localStorage["_viewedEntries"] = JSON.stringify(_viewedEntries);
+                        }
+
                     }
+                }catch(e) {
+                    mw.log("Exception in markAsRead: "+e);
 
                 }
             },
@@ -199,6 +212,10 @@ DAL for Q&A Module
 
         // The bind postfix:
         bindPostfix: '.KQnaService',
+<<<<<<< HEAD
+=======
+        keepPolling: true,
+>>>>>>> 2.53-WEBC-937
         QnaThreads: ko.observableArray(),
         AnswerOnAirQueue: ko.observableArray(),
         QandA_ResponseProfile: "QandA_ResponseProfile",
@@ -217,9 +234,22 @@ DAL for Q&A Module
             // Setup player ref:
             this.embedPlayer = embedPlayer;
             this.qnaPlugin = qnaPlugin;
+<<<<<<< HEAD
             this.kPushServerNotification = new mw.KPushServerNotification(embedPlayer);
 
             if (embedPlayer.isLive()) {
+=======
+
+            this.keepPolling=true;
+
+
+            if (embedPlayer.isLive()) {
+                this.requestCuePoints();
+            }
+
+        },
+        boot:function() {
+>>>>>>> 2.53-WEBC-937
 
                 //we first register to all notification before continue to get the existing cuepoints, so we don't get races and lost cue points
                 $.when(this.getMetaDataProfile(), this.registerPublicNotificationItems(), this.registerUserNotificationItems(), this.registerCodeNotificationItems())
@@ -257,7 +287,11 @@ DAL for Q&A Module
         viewedEntries: viewedEntries,
 
         destroy: function () {
+<<<<<<< HEAD
 
+=======
+            this.keepPolling=false;
+>>>>>>> 2.53-WEBC-937
             $(this.embedPlayer).unbind(this.bindPostfix);
         },
 
@@ -536,8 +570,16 @@ DAL for Q&A Module
             var _this=this;
             cuePoints.forEach(function(cuePoint) {
 
+<<<<<<< HEAD
                 var item=_this.annotationCuePointToQnaEntry(cuePoint);
                 if (item) {
+=======
+        requestCuePoints:function() {
+            var _this = this;
+            if (!_this.keepPolling) {
+                return false;
+            }
+>>>>>>> 2.53-WEBC-937
 
                     if (item.getType() === "AnswerOnAir"){
 
@@ -551,6 +593,7 @@ DAL for Q&A Module
                 }
             });
 
+<<<<<<< HEAD
             this.sortThreads();
         },
         processQnAState:function(cuePoint) {
@@ -596,6 +639,10 @@ DAL for Q&A Module
                             webCastingState = webCastingState["qnaSettings"];
                             disableModule = !webCastingState["qnaEnabled"];
                             announcementOnly = !disableModule && webCastingState["announcementOnly"];
+=======
+                        if (!_this.keepPolling) {
+                            return false;
+>>>>>>> 2.53-WEBC-937
                         }
                     }
                     catch(e) {
@@ -606,6 +653,7 @@ DAL for Q&A Module
             this.qnaPlugin.hideModule(disableModule, announcementOnly);
         },
 
+<<<<<<< HEAD
         requestCuePoints:function() {
             var _this = this;
 
@@ -729,6 +777,118 @@ DAL for Q&A Module
                 });
 
 
+=======
+                        try {
+                            // process results from 1st request
+                            var data = resoults[0];
+                            // if an error pop out:
+                            if (!data || data.code) {
+                                // todo: add error handling
+                                mw.log("Error:: KCuePoints could not retrieve live cuepoints");
+                                return;
+                            }
+
+                            data.objects.forEach(function (cuePoint) {
+
+                                var item = _this.annotationCuePointToQnaEntry(cuePoint);
+                                if (item) {
+
+                                    if (_this.lastUpdateTime < cuePoint.updatedAt) {
+                                        _this.lastUpdateTime = cuePoint.updatedAt;
+                                    }
+                                    if (item.getType() === "AnswerOnAir") {
+
+                                        _this.addOrUpdateAnswerOnAir(item);
+                                        _this.AnswerOnAirQueueUpdate(_this.qnaPlugin.embedPlayer.currentTime);
+
+                                    }
+                                    else {
+                                        _this.addOrUpdateEntry(item);
+                                    }
+                                }
+                            });
+
+                            _this.sortThreads();
+
+                            // process results from 2nd request
+                            var data2 = resoults[1];
+                            // if an error pop out:
+                            if (!data2 || !data2.objects || data2.objects.length < 1) {
+                                return;
+                            }
+
+                            var disableModule = true;
+                            var announcementOnly = false;
+
+                            var cuePoint = data2.objects[0];
+                            if (cuePoint === undefined || cuePoint.code === undefined) {
+                                return;
+                            }
+
+                            _this.moduleStatusLastUpdateTime = cuePoint.updatedAt;
+
+                            //TODO remove this once all procuders app will be upgraded to latest
+                            if (cuePoint.code === "ENABLE_QNA") {
+                                disableModule = false;
+                                announcementOnly = false;
+                            }
+                            else if (cuePoint.code === "DISABLE_QNA") {
+                                disableModule = true;
+                                announcementOnly = false;
+                            }
+                            else if (cuePoint.code === "ENABLE_ANNOUNCEMENTS_ONLY") {
+                                disableModule = false;
+                                announcementOnly = true;
+                            }
+                            else if (cuePoint.code === "DISABLE_ANNOUNCEMENTS_ONLY") {
+                                disableModule = false;
+                                announcementOnly = false;
+                            }
+                            //for BC supporting both new and old QnA settings cue points
+                            if (cuePoint.tags) {
+                                //old QnA settings cue point convention //todo [sa] remove after releasing new producer version
+                                if (cuePoint.tags.indexOf("WEBCASTSTATETAG") >= 0) {
+                                    try {
+                                        var webCastingState = JSON.parse(cuePoint.code);
+                                        disableModule = !webCastingState["QnA"];
+                                        announcementOnly = !disableModule && webCastingState["AnnouncementsOnly"];
+                                    }
+                                    catch (e) {
+                                        mw.log("Error:: Error parsing WEBCASTSTATETAG code cue point " + e.message + " " + e.stack);
+                                    }
+                                }
+                                //new QnA settings cue point convention
+                                else if (cuePoint.tags.indexOf("player-qna-settings-update") >= 0) {
+                                    try {
+                                        if (cuePoint.partnerData) {
+                                            var webCastingState = JSON.parse(cuePoint.partnerData);
+                                            webCastingState = webCastingState["qnaSettings"];
+                                            disableModule = !webCastingState["qnaEnabled"];
+                                            announcementOnly = !disableModule && webCastingState["announcementOnly"];
+                                        }
+                                    }
+                                    catch (e) {
+                                        mw.log("Error:: Error parsing player-qna-settings-update code cue point " + e.message + " " + e.stack);
+                                    }
+                                }
+                            }
+                            _this.qnaPlugin.hideModule(disableModule, announcementOnly);
+                        } catch(e) {
+                            mw.log("Error in qna requestCuePoints "+e);
+                        } finally {
+                            setTimeout(_this.requestCuePoints.bind(_this),
+                                _this.qnaPlugin.getConfig("qnaPollingInterval") || 10000);
+                        }
+                    },
+                    undefined,
+                    function onError(e) {
+                        mw.log("Error in qna requestCuePoints "+e);
+                        setTimeout(_this.requestCuePoints.bind(_this),
+                            _this.qnaPlugin.getConfig("qnaPollingInterval") || 10000);
+                    }
+                );
+            });
+>>>>>>> 2.53-WEBC-937
         }
 
     };

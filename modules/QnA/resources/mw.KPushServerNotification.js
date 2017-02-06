@@ -22,6 +22,8 @@
         var deferred = $.Deferred();
 
         var _this=this;
+        mw.log("connecting to  url ");
+
         this.socket = io.connect(url, {forceNew: true});
 
         this.socket.on('validated', function(){
